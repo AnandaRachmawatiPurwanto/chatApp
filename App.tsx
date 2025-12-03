@@ -1,45 +1,53 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+// Di file App.tsx
+import React from "react";
+import { TouchableOpacity, Text } from "react-native"; // Jangan lupa import ini
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { signOut } from "firebase/auth"; // Import signOut
+import { auth } from "./firebase"; // Import auth
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import LoginScreen from "./screens/LoginScreen"; 
+import RegisterScreen from "./screens/RegisterScreen"; 
+import ChatScreen from "./screens/ChatScreen";
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+export type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  Chat: { name: string };
+};
 
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function App() {
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{headerShown: false}} />
+        
+        {/* MODIFIKASI BAGIAN INI */}
+        <Stack.Screen 
+          name="Chat" 
+          component={ChatScreen} 
+          options={({ route, navigation }) => ({ 
+            title: route.params.name,
+            // Tambah Tombol Logout di Kanan Atas
+            headerRight: () => (
+              <TouchableOpacity 
+                onPress={() => {
+                  signOut(auth).then(() => {
+                    navigation.replace("Login");
+                  });
+                }}
+                style={{ marginRight: 10 }}
+              >
+                <Text style={{ color: "red", fontWeight: "bold" }}>Keluar</Text>
+              </TouchableOpacity>
+            )
+          })} 
+        />
+        
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
-
-export default App;
